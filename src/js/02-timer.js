@@ -1,18 +1,14 @@
-
-import flatpickr from "flatpickr";
+import flatpickr from 'flatpickr';
 import { Notify } from 'notiflix/build/notiflix-notify-aio';
-import "flatpickr/dist/flatpickr.min.css";
+import 'flatpickr/dist/flatpickr.min.css';
 
-
-
-const time = 1000;
-const imputDatePickerEl = document.querySelector('#datetime-picker');
-const btnStartEl = document.querySelector('button[data-start]');
-const daysEl = document.querySelector('[data-days]');
-const hoursEl = document.querySelector('[data-hours]');
-const minutesEl = document.querySelector('[data-minutes]');
-const secondsEl = document.querySelector('[data-seconds]');
-
+let getRef = selector => document.querySelector(selector);
+const imputDatePicker = getRef('#datetime-picker');
+const btnStart = getRef('[data-start]');
+const days = getRef('[data-days]');
+const hours = getRef('[data-hours]');
+const minutes = getRef('[data-minutes]');
+const seconds = getRef('[data-seconds]');
 
 let timeDifference = 0;
 let timerId = null;
@@ -24,92 +20,72 @@ const options = {
   defaultDate: new Date(),
   minuteIncrement: 1,
   onClose(selectedDates) {
-    
-    currentDifferenceDate(selectedDates[0]);
-    console.log(selectedDates[0]);
+  currentDifferenceDate(selectedDates[0]);
   },
 };
 
-btnStartEl.setAttribute('disabled', true);
+btnStart.setAttribute('disabled', true);
+btnStart.addEventListener('click', onBtnStart);
 
-flatpickr(imputDatePickerEl, options);
-
-btnStartEl.addEventListener('click', onBtnStart);
-
-window.addEventListener('keydown', event => {
-  if (event.code === 'Escape' && timerId) {
-    clearInterval(timerId);
-
-    imputDatePickerEl.removeAttribute('disabled');
-    btnStartEl.setAttribute('disabled', true);
-
-    secondsEl.textContent = '00';
-    minutesEl.textContent = '00';
-    hoursEl.textContent = '00';
-    daysEl.textContent = '00';
-  };
-});
+flatpickr(imputDatePicker, options);
 
 function onBtnStart() {
-  timerId = setInterval(startTimer, time);
-};
+  timerId = setInterval(startTimer, 1000);
+}
 
 function currentDifferenceDate(selectedDates) {
   const currentDate = Date.now();
 
   if (selectedDates < currentDate) {
-    btnStartEl.toggleAttribute('disabled', true);
+    btnStart.setAttribute('disabled', true);
     return Notify.failure('Please choose a date in the future');
-  };
+  }
 
   timeDifference = selectedDates.getTime() - currentDate;
   formatDate = convertMs(timeDifference);
 
   renderDate(formatDate);
-  btnStartEl.removeAttribute('disabled');
-};
+  btnStart.removeAttribute('disabled');
+}
 
 function startTimer() {
-  btnStartEl.toggleAttribute('disabled', true);
-  imputDatePickerEl.toggleAttribute('disabled', true);
+  btnStart.setAttribute('disabled', true);
+  imputDatePicker.setAttribute('disabled', true);
 
   timeDifference -= 1000;
 
-  if (secondsEl.textContent <= 0 && minutesEl.textContent <= 0) {
-    Notify.success('Time end');
+  if (seconds.textContent <= 0 && minutes.textContent <= 0) {
+    Notify.success('Time out');
     clearInterval(timerId);
   } else {
     formatDate = convertMs(timeDifference);
     renderDate(formatDate);
-  };
-};
-
+  }
+}
 
 function renderDate(formatDate) {
-  secondsEl.textContent = formatDate.seconds;
-  minutesEl.textContent = formatDate.minutes;
-  hoursEl.textContent = formatDate.hours;
-  daysEl.textContent = formatDate.days;
+  seconds.textContent = formatDate.seconds;
+  minutes.textContent = formatDate.minutes;
+  hours.textContent = formatDate.hours;
+  days.textContent = formatDate.days;
+}
+
+function addLeadingZero(value) {
+    return String(value).padStart(2, 0)
 };
-
-
-function pad(value) {
-  return String(value).padStart(2, '0');
-  };
-
 
 function convertMs(ms) {
-  let second = 1000;
-  let minute = second * 60;
-  let hour = minute * 60;
-  let day = hour * 24;
+  const second = 1000;
+  const minute = second * 60;
+  const hour = minute * 60;
+  const day = hour * 24;
 
-  const days = pad(Math.floor(ms / day)); 
-  const hours = pad(Math.floor((ms % day) / hour));
-  const minutes = pad( Math.floor(((ms % day) % hour) / minute));
-  const seconds = pad( Math.floor((((ms % day) % hour) % minute) / second));
+  const days =addLeadingZero( Math.floor(ms / day)) ;
+  const hours = addLeadingZero(Math.floor((ms % day) / hour) );
+  const minutes = addLeadingZero(Math.floor(((ms % day) % hour) / minute)) ;
+  const seconds = addLeadingZero(Math.floor((((ms % day) % hour) % minute) / second));
 
   return { days, hours, minutes, seconds };
-};
-    
+}
+
 
